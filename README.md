@@ -235,5 +235,5 @@ constructor(api: IApi) — принимает объект, соответств
 
 Методы класса:  
 - getProducts(): Promise<IProduct[]> — выполняет GET-запрос на эндпоинт /product/ и возвращает массив товаров.  
-- sendOrder(buyer: IBuyer, items: IProduct[]): Promise<object> — выполняет POST-запрос на эндпоинт /order/, передавая данные покупателя и выбранные товары.
+- sendOrder(buyer: IBuyer, items: IProduct[]): Promise<object> — выполняет POST-запрос на эндпоинт /order/, передавая данные покупателя и выбранные товары. 
 
