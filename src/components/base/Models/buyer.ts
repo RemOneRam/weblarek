@@ -1,16 +1,24 @@
 import { IBuyer, TPayment } from '../../../types';
+import { EventEmitter } from '../../base/Events';
 
 export class Buyer {
     private payment: TPayment | null = null;
     private address: string | null = null;
     private email: string | null = null;
     private phone: string | null = null;
+    private emitter?: EventEmitter;
+
+    constructor(emitter?: EventEmitter) {
+        this.emitter = emitter;
+    }
 
     setData(data: Partial<IBuyer>): void {
         if (data.payment !== undefined) this.payment = data.payment;
         if (data.address !== undefined) this.address = data.address;
         if (data.email !== undefined) this.email = data.email;
         if (data.phone !== undefined) this.phone = data.phone;
+
+        this.emitter?.emit('buyer:changed', { buyer: this.getData() });
     }
 
     getData(): IBuyer {
@@ -27,6 +35,8 @@ export class Buyer {
         this.address = null;
         this.email = null;
         this.phone = null;
+
+        this.emitter?.emit('buyer:cleared', {});
     }
 
     validate(): Record<string, string> {
@@ -35,6 +45,8 @@ export class Buyer {
         if (!this.address || this.address.trim() === '') errors.address = 'Укажите адрес';
         if (!this.email || this.email.trim() === '') errors.email = 'Укажите email';
         if (!this.phone || this.phone.trim() === '') errors.phone = 'Укажите телефон';
+
+        this.emitter?.emit('buyer:validated', { errors });
         return errors;
     }
 }
