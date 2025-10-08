@@ -1,8 +1,8 @@
-import { IBuyer, TPayment } from '../../../types';
+import { IBuyer} from '../../../types';
 import { EventEmitter } from '../../base/Events';
 
 export class Buyer {
-    private payment: TPayment | null = null;
+    private payment: IBuyer['payment'] | null = null;
     private address: string | null = null;
     private email: string | null = null;
     private phone: string | null = null;
@@ -23,10 +23,10 @@ export class Buyer {
 
     getData(): IBuyer {
         return {
-            payment: this.payment!,
-            address: this.address!,
-            email: this.email!,
-            phone: this.phone!
+            payment: this.payment as IBuyer['payment'],
+            address: this.address as string,
+            email: this.email as string,
+            phone: this.phone as string,
         };
     }
 
@@ -35,7 +35,6 @@ export class Buyer {
         this.address = null;
         this.email = null;
         this.phone = null;
-
         this.emitter?.emit('buyer:cleared', {});
     }
 

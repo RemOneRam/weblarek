@@ -2,26 +2,29 @@ import { EventEmitter } from '../components/base/Events';
 
 /**
  * Gallery view component
- * Отвечает за отображение списка карточек товаров
+ * Отвечает за отображение списка карточек товаров.
+ * Использует <main class="gallery"></main> в качестве контейнера.
  */
 export class Gallery {
   private container: HTMLElement;
-  private catalogElement: HTMLElement | null;
   private emitter?: EventEmitter;
 
   constructor(container: HTMLElement, emitter?: EventEmitter) {
     this.container = container;
     this.emitter = emitter;
-
-    this.catalogElement = this.container.querySelector('.gallery__list') as HTMLElement | null;
   }
 
+  /**
+   * Устанавливает массив карточек для отображения.
+   * Заменяет всё содержимое <main> на новые элементы.
+   */
   setCatalog(items: HTMLElement[]): void {
-    if (!this.catalogElement) return;
-    this.catalogElement.innerHTML = '';
-    items.forEach(item => this.catalogElement!.appendChild(item));
+    this.container.replaceChildren(...items);
   }
 
+  /**
+   * Возвращает корневой элемент галереи.
+   */
   render(): HTMLElement {
     return this.container;
   }

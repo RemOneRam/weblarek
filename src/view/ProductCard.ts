@@ -2,7 +2,7 @@ import { categoryMap } from '../utils/constants';
 import { EventEmitter } from '../components/base/Events';
 
 /**
- * ProductCard - базовый класс карточки товара
+ * ProductCard - базовый класс карточки товара.
  * Сохраняет ссылки на элементы разметки и реализует общие методы отображения.
  */
 export class ProductCard {
@@ -22,7 +22,7 @@ export class ProductCard {
     this.priceEl = this.container.querySelector('.card__price');
     this.imageEl = this.container.querySelector('.card__image') as HTMLImageElement | null;
     this.categoryEl = this.container.querySelector('.card__category');
-    this.buttonEl = this.container.querySelector('.card__action') as HTMLButtonElement | null;
+    this.buttonEl = this.container.querySelector('.card__button') as HTMLButtonElement | null;
 
     if (this.container) {
       this.container.addEventListener('click', (evt) => {
@@ -59,9 +59,10 @@ export class ProductCard {
       if (c.startsWith('card__category_')) this.categoryEl!.classList.remove(c);
     });
 
-    const mod = categoryMap && value in categoryMap 
-    ? categoryMap[value as keyof typeof categoryMap] 
-    : null;
+    const mod = categoryMap && value in categoryMap
+      ? categoryMap[value as keyof typeof categoryMap]
+      : null;
+
     if (mod) {
       this.categoryEl.classList.add(`card__category_${mod}`);
     }
