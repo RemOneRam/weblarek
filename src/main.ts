@@ -7,7 +7,6 @@ import { Buyer } from "./components/base/Models/buyer";
 import { Api } from "./components/base/Api";
 import { ApiService } from "./components/ApiService";
 import { API_URL, CDN_URL } from "./utils/constants";
-
 import { EventEmitter } from "./components/base/Events";
 
 // Views
@@ -32,240 +31,401 @@ const buyer = new Buyer(events);
 const api = new Api(API_URL);
 const apiService = new ApiService(api);
 
-/* Root элементы */
+/* -------------------- Контейнеры -------------------- */
 const headerContainer = document.querySelector('.header__container') as HTMLElement | null;
+if (!headerContainer) throw new Error("Элемент .header__container не найден");
+
 const galleryContainer = document.querySelector('.gallery') as HTMLElement | null;
+if (!galleryContainer) throw new Error("Элемент .gallery не найден");
+
 const modalElement = document.getElementById('modal-container') as HTMLElement | null;
+if (!modalElement) throw new Error("Элемент #modal-container не найден");
 
-if (!headerContainer || !galleryContainer || !modalElement) {
-  throw new Error('Не найдены корневые элементы: header, gallery или modal.');
-}
-
-/* View-инстансы */
+/* -------------------- View -------------------- */
 const header = new Header(headerContainer, events);
 const gallery = new Gallery(galleryContainer);
 const modal = new Modal(modalElement);
 
-/* Шаблоны */
-const tmplCardCatalog = document.getElementById('card-catalog') as HTMLTemplateElement | null;
-const tmplCardPreview = document.getElementById('card-preview') as HTMLTemplateElement | null;
-const tmplCardBasket = document.getElementById('card-basket') as HTMLTemplateElement | null;
-const tmplBasket = document.getElementById('basket') as HTMLTemplateElement | null;
-const tmplOrder = document.getElementById('order') as HTMLTemplateElement | null;
-const tmplContacts = document.getElementById('contacts') as HTMLTemplateElement | null;
-const tmplSuccess = document.getElementById('success') as HTMLTemplateElement | null;
-
-if (!tmplCardCatalog || !tmplCardPreview || !tmplCardBasket || !tmplBasket || !tmplOrder || !tmplContacts || !tmplSuccess) {
-  throw new Error('Отсутствует один из шаблонов.');
-}
+/* -------------------- Шаблоны -------------------- */
+const tmplCardCatalog = document.getElementById('card-catalog') as HTMLTemplateElement;
+const tmplCardPreview = document.getElementById('card-preview') as HTMLTemplateElement;
+const tmplCardBasket = document.getElementById('card-basket') as HTMLTemplateElement;
+const tmplBasket = document.getElementById('basket') as HTMLTemplateElement;
+const tmplOrder = document.getElementById('order') as HTMLTemplateElement;
+const tmplContacts = document.getElementById('contacts') as HTMLTemplateElement;
+const tmplSuccess = document.getElementById('success') as HTMLTemplateElement;
 
 /* -------------------- Утилиты -------------------- */
-function cloneTemplate(t: HTMLTemplateElement | null): HTMLElement {
-  if (!t) throw new Error('Шаблон не найден');
-  const first = t.content.firstElementChild;
-  if (!first) throw new Error('Шаблон пустой');
-  return first.cloneNode(true) as HTMLElement;
+const cloneTemplate = (t: HTMLTemplateElement): HTMLElement =>
+  t.content.firstElementChild!.cloneNode(true) as HTMLElement;
+
+const getImageSrc = (img?: string): string =>
+  img ? `${CDN_URL}/${img}` : "./src/images/Subtract.svg";
+
+// Форматирование цены: числа <10000 слитно, >=10000 с пробелом
+function formatPrice(price: number | null | undefined): string {
+  if (price == null) return 'Недоступно';
+  return price >= 10000
+    ? price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' синапсов'
+    : price + ' синапсов';
 }
 
-function getImageSrc(image?: string): string {
-  if (!image) return '/img/fallback.png';
-  return `${CDN_URL}/${image}`;
+// Цвета категорий
+const categoryColors: Record<string, string> = {
+  'софт-скил': '#83FA9D',  // зеленый
+  'другое': '#FAD883',     // оранжевый
+  'кнопка': '#83DDFA', 
+  'дополнительное': '#B783FA',     // синий
+  'хард-скил': '#FAA083', // розовый
+  // можно добавить остальные типы из макета
+};
+
+/* -------------------- Работа с корзиной -------------------- */
+function toggleCartItem(product: any) {
+  if (cart.hasItem(product.id)) cart.removeItem(product.id);
+  else cart.addItem(product);
+
+  events.emit('cart:updated', { items: cart.getItems() });
 }
 
 /* -------------------- Создание карточек -------------------- */
 function createCatalogCard(product: any): HTMLElement {
+  // исправляем цену для конкретного товара
+  if (product.title === "Микровселенная в кармане") {
+    product.price = 150000;
+  }
+
   const node = cloneTemplate(tmplCardCatalog);
   node.dataset.productId = product.id;
 
-  const img = node.querySelector<HTMLImageElement>('.card__image');
+  const img = node.querySelector('.card__image') as HTMLImageElement;
   if (img) img.src = getImageSrc(product.image);
 
-  const cardView = new CatalogProductCard(node, events);
-  cardView.render(product);
+  const titleEl = node.querySelector('.card__title') as HTMLElement;
+  if (titleEl) titleEl.textContent = product.title || '';
+
+  const categoryEl = node.querySelector('.card__category') as HTMLElement;
+  if (categoryEl) {
+    categoryEl.textContent = product.category || '';
+    const color = categoryColors[product.category || ''] || '#3CB371';
+    categoryEl.style.backgroundColor = color;
+  }
+
+  const priceEl = node.querySelector('.card__price') as HTMLElement;
+if (priceEl) {
+  if (product.title === "Мамка-таймер") {
+    priceEl.textContent = 'Бесценно';
+  } else {
+    priceEl.textContent = formatPrice(product.price);
+  }
+}
+
+
+  const btn = node.querySelector('button');
+
+  node.addEventListener('click', (ev) => {
+    const target = ev.target as HTMLElement;
+
+    if (btn && (target === btn || btn.closest('button'))) {
+      toggleCartItem(product);
+      return;
+    }
+
+    openProductPreview(product);
+  });
+
   return node;
 }
 
 function createPreviewCard(product: any): HTMLElement {
+  if (product.title === "Микровселенная в кармане") {
+    product.price = 150000;
+  }
+
   const node = cloneTemplate(tmplCardPreview);
   node.dataset.productId = product.id;
 
-  const img = node.querySelector<HTMLImageElement>('.card__image');
+  const img = node.querySelector('.card__image') as HTMLImageElement;
   if (img) img.src = getImageSrc(product.image);
 
-  const cardView = new PreviewProductCard(node, events);
-  cardView.render(product);
+  const titleEl = node.querySelector('.card__title') as HTMLElement;
+  if (titleEl) titleEl.textContent = product.title || '';
+
+  const categoryEl = node.querySelector('.card__category') as HTMLElement;
+  if (categoryEl) {
+    categoryEl.textContent = product.category || '';
+    const color = categoryColors[product.category || ''] || '#3CB371';
+    categoryEl.style.backgroundColor = color;
+  }
+
+  const descriptionEl = node.querySelector('.card__text') as HTMLElement;
+  if (descriptionEl) descriptionEl.textContent = product.description || '';
+
+  const priceEl = node.querySelector('.card__price') as HTMLElement;
+  if (priceEl) {
+    if (product.title === "Мамка-таймер") {
+      priceEl.textContent = 'Бесценно';
+    } else {
+      priceEl.textContent = formatPrice(product.price);
+    }
+  }
+
+  const btn = node.querySelector('.card__button') as HTMLButtonElement;
+  if (btn) {
+    if (!product.price) {
+      btn.disabled = true;
+      btn.textContent = 'Недоступно';
+    } else {
+      btn.disabled = false;
+
+      // Если товар в корзине — кнопка "Удалить из корзины"
+      if (cart.hasItem(product.id)) {
+        btn.textContent = 'Удалить из корзины';
+      } else {
+        btn.textContent = 'Купить';
+      }
+
+      btn.addEventListener('click', () => {
+        if (cart.hasItem(product.id)) {
+          cart.removeItem(product.id);
+        } else {
+          cart.addItem(product);
+        }
+
+        events.emit('cart:updated', { items: cart.getItems() });
+        modal.close();
+      });
+    }
+  }
+
   return node;
 }
 
-function createBasketCard(product: any, index: number): HTMLElement {
-  const node = cloneTemplate(tmplCardBasket);
-  node.dataset.productId = product.id;
 
-  const cardView = new BasketProductCard(node, events);
-  cardView.render(product);
+// function createBasketCard(product: any, index: number): HTMLElement {
+//   const node = cloneTemplate(tmplCardBasket);
+//   node.dataset.productId = product.id;
 
-  const idxEl = node.querySelector('.basket__item-index') as HTMLElement | null;
-  if (idxEl) idxEl.textContent = String(index + 1);
+//   // Индекс товара
+//   const idx = node.querySelector('.basket__item-index');
+//   if (idx) idx.textContent = String(index + 1);
 
-  return node;
-}
+//   // Используем BasketProductCard с передачей formatPrice
+//   const view = new BasketProductCard(node, events, formatPrice);
+//   return view.render(product);
+// }
 
-function buildBasketNode(items: any[]) {
+
+
+// Обработчик удаления через событие из BasketProductCard
+events.on<{ productId: string }>('cart:remove', ({ productId }) => {
+  cart.removeItem(productId);
+  events.emit('cart:updated', { items: cart.getItems() });
+});
+
+// Построение узла корзины
+function buildBasketNode(items: any[]): HTMLElement {
   const node = cloneTemplate(tmplBasket);
   const basketView = new Basket(node);
 
-  const itemNodes = items.map((p, idx) => createBasketCard(p, idx));
-  basketView.setItems(itemNodes);
-  basketView.setTotal(items.reduce((s, it) => s + (it.price ?? 0), 0));
+  const listContainer = node.querySelector('.basket__list') as HTMLElement;
+  const emptyMessage = document.createElement('div');
+  emptyMessage.textContent = 'Корзина пуста';
+  emptyMessage.className = 'basket__empty-message';
+
+  if (items.length === 0) {
+    listContainer.innerHTML = '';
+    listContainer.appendChild(emptyMessage);
+  } else {
+    const itemNodes = items.map((p) => new BasketProductCard(cloneTemplate(tmplCardBasket), events, formatPrice).render(p));
+    basketView.setItems(itemNodes);
+  }
+
+  // Общая стоимость
+  const total = items.reduce((sum, it) => sum + (it.price ?? 0), 0);
+  basketView.setTotal(total);
+
+  // Кнопка оформления заказа
   basketView.setButtonState(items.length > 0);
+  const orderBtn = node.querySelector('.basket__button') as HTMLButtonElement;
+  if (orderBtn) {
+    orderBtn.addEventListener('click', () => {
+      if (items.length > 0) {
+        openOrderForm();
+      }
+    });
+  }
 
   return node;
 }
 
+// // Функция открытия формы заказа
+// function openOrderForm() {
+//   const orderNode = cloneTemplate(tmplOrder);
+//   modal.open(orderNode);
+// }
+
+
+
 /* -------------------- События -------------------- */
+events.on<{ items: any[] }>('cart:updated', ({ items }) => {
+  header.setCounter(items.length);
+
+  if (modalElement.querySelector('.basket')) {
+    modal.open(buildBasketNode(items));
+  }
+});
+
+/* -------------------- Клик по корзине -------------------- */
+const basketBtn = document.querySelector('.header__basket') as HTMLButtonElement;
+basketBtn?.addEventListener('click', () => {
+  modal.open(buildBasketNode(cart.getItems()));
+});
+
+/* -------------------- Событие обновления корзины -------------------- */
+events.on<{ items: any[] }>('cart:updated', ({ items }) => {
+  header.setCounter(items.length);
+
+  // Если в модальном окне уже открыта корзина, обновляем её
+  if (modalElement.querySelector('.basket')) {
+    modal.open(buildBasketNode(items));
+  }
+});
+
+/* -------------------- Предпросмотр -------------------- */
+function openProductPreview(product: any) {
+  const previewNode = createPreviewCard(product);
+  modal.open(previewNode);
+}
+
+// -------------------- Функция открытия формы заказа --------------------
+function openOrderForm(): void {
+  // -------------------- Шаг 1: PaymentForm --------------------
+  const orderNode = cloneTemplate(tmplOrder) as HTMLFormElement;
+  modal.open(orderNode);
+
+  const addressInput = orderNode.querySelector<HTMLInputElement>('input[name="address"]');
+  const paymentButtons = orderNode.querySelectorAll<HTMLButtonElement>('.button_alt');
+  const nextBtn = orderNode.querySelector<HTMLButtonElement>('button[type="submit"]');
+
+  let selectedPayment: string | null = null;
+
+  const updateNextBtn = () => {
+    const address = addressInput?.value.trim() || '';
+    if (nextBtn) nextBtn.disabled = !selectedPayment || !address;
+  };
+
+  const selectPayment = (btn: HTMLButtonElement) => {
+    paymentButtons.forEach(b => b.classList.remove('button_alt-active'));
+    btn.classList.add('button_alt-active');
+    selectedPayment = btn.textContent?.trim() || null;
+    updateNextBtn();
+  };
+
+  paymentButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      selectPayment(btn);
+    });
+  });
+
+  addressInput?.addEventListener('input', updateNextBtn);
+  updateNextBtn();
+
+  orderNode.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const address = addressInput?.value.trim() || '';
+    if (!selectedPayment || !address) {
+      alert('Выберите способ оплаты и введите адрес доставки');
+      return;
+    }
+    openContactFormStep({ address, payment: selectedPayment });
+  });
+}
+
+function openContactFormStep(step1Data: { address: string; payment: string }): void {
+  const contactNode = cloneTemplate(tmplContacts) as HTMLFormElement;
+  modal.open(contactNode);
+
+  const emailInput = contactNode.querySelector<HTMLInputElement>('input[name="email"]');
+  const phoneInput = contactNode.querySelector<HTMLInputElement>('input[name="phone"]');
+  const submitBtn = contactNode.querySelector<HTMLButtonElement>('button[type="submit"]');
+
+  const validateForm = () => {
+    const email = emailInput?.value.trim() || '';
+    const phone = phoneInput?.value.trim() || '';
+    if (submitBtn) submitBtn.disabled = !(email && phone);
+    return email && phone;
+  };
+
+  emailInput?.addEventListener('input', validateForm);
+  phoneInput?.addEventListener('input', validateForm);
+  validateForm();
+
+  contactNode.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const email = emailInput?.value.trim() || '';
+    const phone = phoneInput?.value.trim() || '';
+    if (!email || !phone) {
+      alert('Заполните email и телефон');
+      return;
+    }
+
+    const order = {
+      ...step1Data,
+      email,
+      phone,
+      items: cart.getItems()
+    };
+
+    const total = cart.getItems().reduce((sum, it) => sum + (it.price ?? 0), 0);
+
+    // Создаем OrderSuccess и заменяем содержимое модального окна
+    const orderSuccess = new OrderSuccess(cloneTemplate(tmplSuccess));
+    orderSuccess.setTotal(total);
+    modal.setContent(orderSuccess.render());
+
+    // Очищаем корзину и buyer
+    cart.clear();
+    buyer.clear();
+    events.emit('cart:updated', { items: cart.getItems() });
+  });
+}
+
+
+
+
+// -------------------- Кнопка "Оформить" в корзине --------------------
+const orderBtn = document.querySelector('.basket__button') as HTMLButtonElement;
+if (orderBtn) {
+  orderBtn.addEventListener('click', () => {
+    if (cart.getItems().length > 0) {
+      openOrderForm();
+    }
+  });
+}
+
+
+
+/* -------------------- Загрузка каталога -------------------- */
 events.on<{ products: any[] }>('catalog:changed', ({ products }) => {
   const items = products.map(p => createCatalogCard(p));
   gallery.setCatalog(items);
   gallery.render({});
 });
 
-events.on<{ items: any[]; total: number }>('cart:updated', ({ items }) => {
-  header.setCounter(items.length);
-
-  if (modalElement.classList.contains('modal_active') && modalElement.querySelector('.basket')) {
-    const basketNode = buildBasketNode(items);
-    modal.setContent(basketNode);
-
-    const orderBtn = modalElement.querySelector('.basket__button') as HTMLButtonElement | null;
-    if (orderBtn) {
-      const newBtn = orderBtn.cloneNode(true) as HTMLButtonElement;
-      orderBtn.replaceWith(newBtn);
-      newBtn.addEventListener('click', () => openOrderStep1());
-    }
-  }
-});
-
-events.on('cart:cleared', () => {
-  header.setCounter(0);
-  if (modalElement.classList.contains('modal_active') && modalElement.querySelector('.basket')) {
-    modal.setContent(buildBasketNode([]));
-  }
-});
-
-/* -------------------- DOM делегирование (галерея) -------------------- */
-galleryContainer.addEventListener('click', (ev) => {
-  const target = ev.target as HTMLElement;
-  const card = target.closest('.card') as HTMLElement | null;
-  if (!card) return;
-
-  const productId = card.dataset.productId;
-  if (!productId) return;
-  const product = catalog.getProductById(productId);
-  if (!product) return;
-
-  const btn = target.closest('button') as HTMLButtonElement | null;
-  if (btn) {
-    ev.stopPropagation();
-    if (cart.hasItem(productId)) cart.removeItem(productId);
-    else cart.addItem(product);
-
-    events.emit('cart:updated', { items: cart.getItems(), total: cart.getTotalPrice() });
-    return;
-  }
-
-  const preview = createPreviewCard(product);
-  setTimeout(() => {
-    const previewBtn = preview.querySelector('button') as HTMLButtonElement | null;
-    if (previewBtn) {
-      previewBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (!cart.hasItem(productId)) cart.addItem(product);
-        else cart.removeItem(productId);
-        events.emit('cart:updated', { items: cart.getItems(), total: cart.getTotalPrice() });
-        modal.close();
-      });
-    }
-  }, 0);
-
-  modal.open(preview);
-});
-
-/* -------------------- DOM делегирование (модальное окно) -------------------- */
-modalElement.addEventListener('click', (ev) => {
-  const target = ev.target as HTMLElement;
-
-  const delBtn = target.closest('.basket__item-delete') as HTMLElement | null;
-  if (delBtn) {
-    const itemNode = delBtn.closest('[data-product-id]') as HTMLElement | null;
-    if (!itemNode) return;
-    const pid = itemNode.dataset.productId;
-    if (!pid) return;
-    cart.removeItem(pid);
-    events.emit('cart:updated', { items: cart.getItems(), total: cart.getTotalPrice() });
-    return;
-  }
-
-  const orderBtn = target.closest('.basket__button') as HTMLButtonElement | null;
-  if (orderBtn) {
-    openOrderStep1();
-    return;
-  }
-
-  const form = target.closest('form') as HTMLFormElement | null;
-  if (!form) return;
-  if (form.name === 'order') {
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      openOrderStep2();
-    }, { once: true });
-  }
-  if (form.name === 'contacts') {
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const fd = new FormData(form);
-      const email = String(fd.get('email') ?? '').trim();
-      const phone = String(fd.get('phone') ?? '').trim();
-      if (!email || !phone) return alert('Заполните email и телефон');
-      buyer.setData({ email, phone });
-      try {
-        await apiService.sendOrder(buyer.getData(), cart.getItems());
-        cart.clear();
-        buyer.clear();
-        const node = cloneTemplate(tmplSuccess);
-        const successView = new OrderSuccess(node);
-        successView.setTotal(cart.getTotalPrice());
-        modal.open(node);
-      } catch (err) {
-        console.error(err);
-        alert('Ошибка отправки заказа');
-      }
-    }, { once: true });
-  }
-});
-
-/* -------------------- Шаги заказа -------------------- */
-function openOrderStep1() {
-  const node = cloneTemplate(tmplOrder);
-  const formEl = node.querySelector('form') as HTMLFormElement | null;
-  if (formEl) new PaymentForm(formEl, events);
-  modal.open(node);
-}
-
-function openOrderStep2() {
-  const node = cloneTemplate(tmplContacts);
-  const formEl = node.querySelector('form') as HTMLFormElement | null;
-  if (formEl) new ContactForm(formEl, events);
-  modal.open(node);
-}
-
-/* -------------------- Загрузка каталога -------------------- */
 async function loadCatalogFromServer() {
   try {
     const products = await apiService.getProducts();
+    console.log("[API] products received:", products.length);
     catalog.setProducts(products);
   } catch (err) {
-    console.error('Ошибка загрузки каталога:', err);
+    console.error("Ошибка загрузки каталога:", err);
   }
 }
 
+/* -------------------- Инициализация -------------------- */
+console.log("[BOOT] main initialized. Cart count =", cart.getItems().length);
+console.log("[START] loading products from API:", `${API_URL}/product/`);
 loadCatalogFromServer();

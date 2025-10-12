@@ -1,41 +1,61 @@
-import { Form } from './Form';
-import { EventEmitter } from '../components/base/Events';
+import { EventEmitter } from "../components/base/Events";
 
-interface IPaymentForm {
-  payment: string;
-  address: string;
-}
+export class PaymentForm {
+  private form: HTMLFormElement;
+  private events: EventEmitter;
+  private addressInput: HTMLInputElement | null;
+  private buttons: NodeListOf<HTMLButtonElement>;
+  private nextBtn: HTMLButtonElement | null;
 
-export class PaymentForm extends Form<IPaymentForm> {
-  protected paymentButtons: HTMLButtonElement[];
-  protected addressInput: HTMLInputElement | null;
+  private selectedPayment: string | null = null;
 
-  constructor(container: HTMLFormElement, events: EventEmitter) {
-    super(container);
+  constructor(form: HTMLFormElement, events: EventEmitter) {
+    this.form = form;
+    this.events = events;
+    this.addressInput = this.form.querySelector<HTMLInputElement>('input[name="address"]');
+    this.buttons = this.form.querySelectorAll<HTMLButtonElement>('.button_alt');
+    this.nextBtn = this.form.querySelector<HTMLButtonElement>('button[type="submit"]');
 
-    this.paymentButtons = Array.from(container.querySelectorAll('button[name]')) as HTMLButtonElement[];
-    this.addressInput = container.querySelector('input[name="address"]');
-
-    this.paymentButtons.forEach(button => {
-      button.addEventListener('click', (e) => {
+    // слушатели выбора способа оплаты
+    this.buttons.forEach((btn) => {
+      btn.addEventListener('click', (e) => {
         e.preventDefault();
-        events.emit('payment:change', { payment: button.name });
+        this.selectPayment(btn);
       });
     });
 
-    this.addressInput?.addEventListener('input', () => {});
+    // слушатель ввода адреса
+    this.addressInput?.addEventListener('input', () => {
+      this.updateButtonState();
+      this.emitChange();
+    });
+
+    this.updateButtonState();
   }
 
-  setPayment(value: string) {
-    this.paymentButtons.forEach(button => {
-      // использую модификатор из ТЗ button_alt-active или button_alt-active? ТЗ говорил button_alt-active
-      button.classList.toggle('button_alt-active', button.name === value);
+  private selectPayment(btn: HTMLButtonElement) {
+    // снять активный класс со всех кнопок
+    this.buttons.forEach(b => b.classList.remove('button_alt-active'));
+
+    // активировать выбранную
+    btn.classList.add('button_alt-active');
+    this.selectedPayment = btn.textContent?.trim() || null;
+    this.emitChange();
+    this.updateButtonState();
+  }
+
+  private emitChange() {
+    const address = this.addressInput?.value.trim() ?? '';
+    this.events.emit('payment:change', {
+      payment: this.selectedPayment,
+      address
     });
   }
 
-  setAddress(value: string) {
-    if (this.addressInput) {
-      this.addressInput.value = value;
+  private updateButtonState() {
+    const isReady = !!this.selectedPayment && !!this.addressInput?.value.trim();
+    if (this.nextBtn) {
+      this.nextBtn.disabled = !isReady;
     }
   }
 }

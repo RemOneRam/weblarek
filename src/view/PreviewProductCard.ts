@@ -5,19 +5,26 @@ import { IProduct } from "../types";
 export class PreviewProductCard extends ProductCard {
   private descriptionEl: HTMLElement | null;
   private categoryEl: HTMLElement | null;
+  private titleEl: HTMLElement | null;
+  private priceEl: HTMLElement | null;
 
   constructor(container: HTMLElement, events: EventEmitter) {
     super(container, events);
     this.descriptionEl = this.container.querySelector('.card__text') ?? this.container.querySelector('.card__description');
     this.categoryEl = this.container.querySelector('.card__category');
+    this.titleEl = this.container.querySelector('.card__title');
+    this.priceEl = this.container.querySelector('.card__price');
   }
 
   render(product: IProduct): HTMLElement {
     super.render(product);
 
-    if (this.descriptionEl) this.descriptionEl.textContent = product.description || '';
+    if (this.titleEl) this.titleEl.textContent = product.title || '';
     if (this.categoryEl) this.categoryEl.textContent = product.category || '';
+    if (this.descriptionEl) this.descriptionEl.textContent = product.description || '';
+    if (this.priceEl) this.priceEl.textContent = product.price != null ? `${product.price} синапсов` : 'Недоступно';
 
+    // кнопка купить
     const btn = this.button;
     if (btn) {
       if (product.price == null) {
@@ -25,7 +32,7 @@ export class PreviewProductCard extends ProductCard {
         btn.textContent = 'Недоступно';
       } else {
         btn.disabled = false;
-        btn.textContent = 'В корзину';
+        btn.textContent = 'Купить';
       }
     }
 
