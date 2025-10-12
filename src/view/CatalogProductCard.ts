@@ -1,23 +1,22 @@
 import { ProductCard } from './ProductCard';
 import { EventEmitter } from '../components/base/Events';
+import { IProduct } from "../types";
 
-/**
- * Карточка товара в каталоге
- * Наследует общий функционал из ProductCard
- */
 export class CatalogProductCard extends ProductCard {
-  constructor(container: HTMLElement, emitter?: EventEmitter) {
-    super(container, emitter);
+  private categoryEl: HTMLElement | null;
 
-    if (this.buttonEl) {
-      this.buttonEl.addEventListener('click', (evt) => {
-        evt.stopPropagation();
-        this.emitter?.emit('product:buy', { element: this.container });
-      });
-    }
+  constructor(container: HTMLElement, events: EventEmitter) {
+    super(container, events);
+    this.categoryEl = this.container.querySelector('.card__category');
   }
 
-  render(): HTMLElement {
+  render(product: IProduct): HTMLElement {
+    super.render(product);
+
+    if (this.categoryEl) {
+      this.categoryEl.textContent = product.category || '';
+    }
+
     return this.container;
   }
 }

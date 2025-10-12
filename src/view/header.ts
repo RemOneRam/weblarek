@@ -1,36 +1,34 @@
 import { EventEmitter } from '../components/base/Events';
+import { Component } from "../components/base/Component";
 
-/**
- * Header view component
- * Находит элементы в конструкторе и эмитит события через EventEmitter
- */
-export class Header {
-  private container: HTMLElement;
-  private basketButton: HTMLButtonElement | null;
-  private counterElement: HTMLElement | null;
-  private emitter?: EventEmitter;
+interface HeaderData {
+  cartCount: number;
+}
 
-  constructor(container: HTMLElement, emitter?: EventEmitter) {
-    this.container = container;
+export class Header extends Component<HeaderData> {
+  basketButton: HTMLButtonElement;
+  counterElement: HTMLElement;
+
+  private emitter: EventEmitter;
+
+  constructor(container: HTMLElement, emitter: EventEmitter) {
+    super(container);
     this.emitter = emitter;
 
-    this.basketButton = this.container.querySelector('.header__basket') as HTMLButtonElement | null;
-    this.counterElement = this.container.querySelector('.header__counter') as HTMLElement | null;
+    this.basketButton = this.container.querySelector('.header__basket')!;
+    this.counterElement = this.container.querySelector('.header__basket-counter')!;
 
-    if (this.basketButton) {
-      this.basketButton.addEventListener('click', () => {
-        this.emitter?.emit('modal:open', { modal: 'cart' });
-      });
-    }
+    this.basketButton.addEventListener('click', () => {
+      this.emitter.emit('modal:open', { modal: 'cart' });
+    });
   }
 
-  setCounter(value: number): void {
-    if (this.counterElement) {
-      this.counterElement.textContent = String(value);
-    }
+  setCounter(value: number) {
+    this.counterElement.textContent = String(value);
   }
 
-  render(): HTMLElement {
+  render(data: HeaderData): HTMLElement {
+    this.setCounter(data.cartCount);
     return this.container;
   }
 }

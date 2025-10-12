@@ -1,43 +1,27 @@
-import { EventEmitter } from '../components/base/Events';
+import { Component } from "../components/base/Component";
 
-/**
- * Basket view component
- * Отвечает за отображение списка товаров и общей суммы
- */
-export class Basket {
-  private container: HTMLElement;
-  private listElement: HTMLElement | null;
-  private totalElement: HTMLElement | null;
-  private buttonOrder: HTMLButtonElement | null;
-  private emitter?: EventEmitter;
+export class Basket extends Component<{}> {
+  listElement: HTMLElement;
+  totalElement: HTMLElement;
+  buttonOrder: HTMLButtonElement;
 
-  constructor(container: HTMLElement, emitter?: EventEmitter) {
-    this.container = container;
-    this.emitter = emitter;
-
-    this.listElement = this.container.querySelector('.basket__list') as HTMLElement | null;
-    this.totalElement = this.container.querySelector('.basket__total') as HTMLElement | null;
-    this.buttonOrder = this.container.querySelector('.basket__order') as HTMLButtonElement | null;
-
-    if (this.buttonOrder) {
-      this.buttonOrder.addEventListener('click', () => {
-        this.emitter?.emit('modal:open', { modal: 'checkout' });
-      });
-    }
+  constructor(container: HTMLElement) {
+    super(container);
+    this.listElement = this.container.querySelector('.basket__list')!;
+    this.totalElement = this.container.querySelector('.basket__price')!;
+    this.buttonOrder = this.container.querySelector('.basket__button')!;
   }
 
-  setItems(items: HTMLElement[]): void {
-    if (!this.listElement) return;
+  setItems(items: HTMLElement[]) {
     this.listElement.innerHTML = '';
-    items.forEach(i => this.listElement!.appendChild(i));
+    items.forEach(item => this.listElement.appendChild(item));
   }
 
-  setTotal(total: number): void {
-    if (this.totalElement) this.totalElement.textContent = String(total);
+  setTotal(total: number) {
+    this.totalElement.textContent = `${total} синапсов`;
   }
 
-  setButtonState(active: boolean): void {
-    if (!this.buttonOrder) return;
+  setButtonState(active: boolean) {
     this.buttonOrder.disabled = !active;
   }
 

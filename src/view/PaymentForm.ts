@@ -1,65 +1,41 @@
 import { Form } from './Form';
 import { EventEmitter } from '../components/base/Events';
 
-/**
- * PaymentForm - выбор способа оплаты и адреса.
- * Использует модификатор 'button_alt-active' для выделения кнопки выбранного варианта.
- */
-export class PaymentForm extends Form {
-  private paymentOptions: NodeListOf<HTMLInputElement>;
-  private addressInput: HTMLInputElement | null;
+interface IPaymentForm {
+  payment: string;
+  address: string;
+}
 
-  constructor(formElement: HTMLFormElement, emitter?: EventEmitter) {
-    super(formElement, emitter);
+export class PaymentForm extends Form<IPaymentForm> {
+  protected paymentButtons: HTMLButtonElement[];
+  protected addressInput: HTMLInputElement | null;
 
-    this.paymentOptions = this.formElement.querySelectorAll('input[name="payment"]') as NodeListOf<HTMLInputElement>;
-    this.addressInput = this.formElement.querySelector('input[name="address"]') as HTMLInputElement | null;
+  constructor(container: HTMLFormElement, events: EventEmitter) {
+    super(container);
 
-    this.paymentOptions.forEach((opt) => {
-      const btn = this.formElement.querySelector(`[data-payment="${opt.value}"]`) as HTMLElement | null;
+    this.paymentButtons = Array.from(container.querySelectorAll('button[name]')) as HTMLButtonElement[];
+    this.addressInput = container.querySelector('input[name="address"]');
 
-      if (btn) {
-        btn.addEventListener('click', (evt) => {
-          evt.preventDefault();
-          opt.checked = true;
-
-          this.paymentOptions.forEach(o => {
-            const b = this.formElement.querySelector(`[data-payment="${o.value}"]`);
-            if (b) b.classList.remove('button_alt-active');
-          });
-          btn.classList.add('button_alt-active');
-
-          this.emitter?.emit('payment:change', { payment: opt.value });
-        });
-      }
-
-      opt.addEventListener('change', () => {
-        this.paymentOptions.forEach(o => {
-          const b = this.formElement.querySelector(`[data-payment="${o.value}"]`);
-          if (b) b.classList.toggle('button_alt-active', o.checked);
-        });
-        this.emitter?.emit('payment:change', { payment: (opt as HTMLInputElement).value });
+    this.paymentButtons.forEach(button => {
+      button.addEventListener('click', (e) => {
+        e.preventDefault();
+        events.emit('payment:change', { payment: button.name });
       });
     });
+
+    this.addressInput?.addEventListener('input', () => {});
   }
 
-  setPayment(value: string): void {
-    this.paymentOptions.forEach(o => {
-      o.checked = o.value === value;
-      const b = this.formElement.querySelector(`[data-payment="${o.value}"]`);
-      if (b) b.classList.toggle('button_alt-active', o.value === value);
+  setPayment(value: string) {
+    this.paymentButtons.forEach(button => {
+      // использую модификатор из ТЗ button_alt-active или button_alt-active? ТЗ говорил button_alt-active
+      button.classList.toggle('button_alt-active', button.name === value);
     });
   }
 
-  setAddress(value: string): void {
-    if (this.addressInput) this.addressInput.value = value;
-  }
-
-  validate(): Record<string, string> {
-    const errors: Record<string, string> = {};
-    const chosen = Array.from(this.paymentOptions).find(o => o.checked);
-    if (!chosen) errors.payment = 'Не выбран вид оплаты';
-    if (!this.addressInput || !this.addressInput.value.trim()) errors.address = 'Укажите адрес';
-    return errors;
+  setAddress(value: string) {
+    if (this.addressInput) {
+      this.addressInput.value = value;
+    }
   }
 }

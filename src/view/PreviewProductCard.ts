@@ -1,26 +1,34 @@
 import { ProductCard } from './ProductCard';
 import { EventEmitter } from '../components/base/Events';
+import { IProduct } from "../types";
 
-/**
- * Карточка товара для превью/модалки
- * Содержит кнопку добавления в корзину
- */
 export class PreviewProductCard extends ProductCard {
-  private addButton: HTMLButtonElement | null;
+  private descriptionEl: HTMLElement | null;
+  private categoryEl: HTMLElement | null;
 
-  constructor(container: HTMLElement, emitter?: EventEmitter) {
-    super(container, emitter);
-
-    this.addButton = this.container.querySelector('.card__add') as HTMLButtonElement | null;
-    if (this.addButton) {
-      this.addButton.addEventListener('click', (evt) => {
-        evt.stopPropagation();
-        this.emitter?.emit('product:buy', { element: this.container });
-      });
-    }
+  constructor(container: HTMLElement, events: EventEmitter) {
+    super(container, events);
+    this.descriptionEl = this.container.querySelector('.card__text') ?? this.container.querySelector('.card__description');
+    this.categoryEl = this.container.querySelector('.card__category');
   }
 
-  render(): HTMLElement {
+  render(product: IProduct): HTMLElement {
+    super.render(product);
+
+    if (this.descriptionEl) this.descriptionEl.textContent = product.description || '';
+    if (this.categoryEl) this.categoryEl.textContent = product.category || '';
+
+    const btn = this.button;
+    if (btn) {
+      if (product.price == null) {
+        btn.disabled = true;
+        btn.textContent = 'Недоступно';
+      } else {
+        btn.disabled = false;
+        btn.textContent = 'В корзину';
+      }
+    }
+
     return this.container;
   }
 }

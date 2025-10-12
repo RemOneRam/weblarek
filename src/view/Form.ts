@@ -1,52 +1,24 @@
-import { EventEmitter } from '../components/base/Events';
+import { Component } from "../components/base/Component";
 
-/**
- * Form - базовый класс для форм (не хранит данных)
- * Все слушатели устанавливаются в конструкторе.
- */
-export class Form {
-  protected formElement: HTMLFormElement;
-  protected submitButton: HTMLButtonElement | null;
-  protected errorsElement: HTMLElement | null;
-  protected emitter?: EventEmitter;
+export class Form<T> extends Component<T> {
+  protected container: HTMLFormElement;
+  protected errors: HTMLElement | null;
 
-  constructor(formElement: HTMLFormElement, emitter?: EventEmitter) {
-    this.formElement = formElement;
-    this.emitter = emitter;
-
-    this.submitButton = this.formElement.querySelector('button[type="submit"]') as HTMLButtonElement | null;
-    this.errorsElement = this.formElement.querySelector('.form__errors') as HTMLElement | null;
-
-    this.formElement.addEventListener('submit', (evt) => {
-      evt.preventDefault();
-      const data = new FormData(this.formElement);
-      this.emitter?.emit('form:submit', { form: this.formElement, data });
-    });
+  constructor(container: HTMLFormElement) {
+    super(container);
+    this.container = container;
+    this.errors = this.container.querySelector('.form__errors');
   }
 
-  onSubmit(handler: (data: object) => void): void {
-    this.formElement.addEventListener('submit', (event) => {
-        event.preventDefault();
-        const data = new FormData(this.formElement);
-        const formData = Object.fromEntries(data.entries());
-        handler(formData); 
-    });
-}
-
-  setErrorMessage(field: string, message: string): void {
-    if (!this.errorsElement) return;
-    const el = document.createElement('div');
-    el.className = 'form__error';
-    el.dataset.field = field;
-    el.textContent = `${field}: ${message}`;
-    this.errorsElement.appendChild(el);
+  protected setErrors(messages: string[]) {
+    if (this.errors) {
+      this.errors.textContent = messages.join(', ');
+    }
   }
 
-  clearErrors(): void {
-    if (this.errorsElement) this.errorsElement.innerHTML = '';
-  }
-
-  render(): HTMLElement {
-    return this.formElement;
+  protected clearErrors() {
+    if (this.errors) {
+      this.errors.textContent = '';
+    }
   }
 }

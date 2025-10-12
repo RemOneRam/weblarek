@@ -1,51 +1,32 @@
-import { EventEmitter } from '../components/base/Events';
+import { Component } from "../components/base/Component";
 
-/**
- * Modal component - самостоятельный компонент без наследников.
- * Управляет видимостью модального окна через модификатор 'modal_active'.
- */
-export class Modal {
-  private container: HTMLElement;
-  private modalElement: HTMLElement | null;
-  private contentElement: HTMLElement | null;
-  private closeButton: HTMLButtonElement | null;
-  private emitter?: EventEmitter;
+export class Modal extends Component<{}> {
+  modalElement: HTMLElement;
+  contentElement: HTMLElement;
+  closeButton: HTMLButtonElement;
 
-  constructor(container: HTMLElement, emitter?: EventEmitter) {
-    this.container = container;
-    this.emitter = emitter;
+  constructor(container: HTMLElement) {
+    super(container);
+    this.modalElement = this.container;
+    this.contentElement = this.modalElement.querySelector('.modal__content')!;
+    this.closeButton = this.modalElement.querySelector('.modal__close')!;
 
-    this.modalElement = this.container.querySelector('.modal') as HTMLElement | null;
-    this.contentElement = this.container.querySelector('.modal__content') as HTMLElement | null;
-    this.closeButton = this.container.querySelector('.modal__close') as HTMLButtonElement | null;
-
-    if (this.closeButton) {
-      this.closeButton.addEventListener('click', () => this.close());
-    }
-
-    if (this.modalElement) {
-      this.modalElement.addEventListener('click', (evt) => {
-        if (evt.target === this.modalElement) this.close();
-      });
-    }
+    this.closeButton.addEventListener('click', () => this.close());
+    this.modalElement.addEventListener('click', (e) => {
+      if (e.target === this.modalElement) this.close();
+    });
   }
 
-  open(content: HTMLElement): void {
-    if (!this.modalElement || !this.contentElement) return;
+  open(content: HTMLElement) {
     this.setContent(content);
     this.modalElement.classList.add('modal_active');
-    this.emitter?.emit('modal:opened', {});
   }
 
-  close(): void {
-    if (!this.modalElement) return;
+  close() {
     this.modalElement.classList.remove('modal_active');
-    if (this.contentElement) this.contentElement.innerHTML = '';
-    this.emitter?.emit('modal:closed', {});
   }
 
-  setContent(content: HTMLElement): void {
-    if (!this.contentElement) return;
+  setContent(content: HTMLElement) {
     this.contentElement.innerHTML = '';
     this.contentElement.appendChild(content);
   }

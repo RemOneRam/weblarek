@@ -1,32 +1,24 @@
-import { EventEmitter } from '../components/base/Events';
+import { Component } from "../components/base/Component";
 
-/**
- * OrderSuccess - компонент для отображения сообщения об успешном заказе.
- */
-export class OrderSuccess {
-  private container: HTMLElement;
-  private description: HTMLElement | null;
-  private totalElement: HTMLElement | null;
-  private buttonClose: HTMLButtonElement | null;
-  private emitter?: EventEmitter;
+export class OrderSuccess extends Component<{}> {
+  description: HTMLElement;
+  totalElement: HTMLElement;
+  buttonClose: HTMLButtonElement;
 
-  constructor(container: HTMLElement, emitter?: EventEmitter) {
-    this.container = container;
-    this.emitter = emitter;
+  constructor(container: HTMLElement) {
+    super(container);
+    this.description = this.container.querySelector('.order-success__description')!;
+    // поправил селектор total (в шаблоне это order-success__description? скорее total отдельный элемент)
+    this.totalElement = this.container.querySelector('.order-success__description')!;
+    this.buttonClose = this.container.querySelector('.order-success__close')!;
 
-    this.description = this.container.querySelector('.order-success__desc') as HTMLElement | null;
-    this.totalElement = this.container.querySelector('.order-success__total') as HTMLElement | null;
-    this.buttonClose = this.container.querySelector('.order-success__close') as HTMLButtonElement | null;
-
-    if (this.buttonClose) {
-      this.buttonClose.addEventListener('click', () => {
-        this.emitter?.emit('modal:close', {});
-      });
-    }
+    this.buttonClose.addEventListener('click', () => {
+      this.container.remove();
+    });
   }
 
-  setTotal(total: number): void {
-    if (this.totalElement) this.totalElement.textContent = String(total);
+  setTotal(total: number) {
+    this.totalElement.textContent = `Списано ${total} синапсов`;
   }
 
   render(): HTMLElement {

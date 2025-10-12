@@ -1,78 +1,60 @@
-import { categoryMap } from '../utils/constants';
 import { EventEmitter } from '../components/base/Events';
+import { IProduct } from "../types";
 
-/**
- * ProductCard - базовый класс карточки товара.
- * Сохраняет ссылки на элементы разметки и реализует общие методы отображения.
- */
 export class ProductCard {
   protected container: HTMLElement;
-  protected titleEl: HTMLElement | null;
-  protected priceEl: HTMLElement | null;
-  protected imageEl: HTMLImageElement | null;
-  protected categoryEl: HTMLElement | null;
-  protected buttonEl: HTMLButtonElement | null;
-  protected emitter?: EventEmitter;
+  protected title: HTMLElement | null;
+  protected price: HTMLElement | null;
+  protected image: HTMLImageElement | null;
+  protected button: HTMLButtonElement | null;
+  protected events: EventEmitter;
 
-  constructor(container: HTMLElement, emitter?: EventEmitter) {
+  constructor(container: HTMLElement, events: EventEmitter) {
     this.container = container;
-    this.emitter = emitter;
+    this.events = events;
 
-    this.titleEl = this.container.querySelector('.card__title');
-    this.priceEl = this.container.querySelector('.card__price');
-    this.imageEl = this.container.querySelector('.card__image') as HTMLImageElement | null;
-    this.categoryEl = this.container.querySelector('.card__category');
-    this.buttonEl = this.container.querySelector('.card__button') as HTMLButtonElement | null;
+    this.title = this.container.querySelector('.card__title');
+    this.price = this.container.querySelector('.card__price');
+    this.image = this.container.querySelector('.card__image');
+    this.button = this.container.querySelector('button');
 
-    if (this.container) {
-      this.container.addEventListener('click', (evt) => {
-        const target = evt.target as HTMLElement;
-        // если клик по кнопке действия — дочерние классы будут обрабатывать
-        if (this.buttonEl && this.buttonEl.contains(target)) return;
-        // уведомляем о выборе товара
-        this.emitter?.emit('product:select', { element: this.container });
-      });
-    }
-  }
-
-  setTitle(value: string): void {
-    if (this.titleEl) this.titleEl.textContent = value;
-  }
-
-  setPrice(value: number | null): void {
-    if (!this.priceEl) return;
-    this.priceEl.textContent = value === null ? 'Бесценно' : String(value);
-  }
-
-  setImage(src: string, alt?: string): void {
-    if (!this.imageEl) return;
-    this.imageEl.src = src;
-    if (alt !== undefined) this.imageEl.alt = alt;
-  }
-
-  setCategory(value: string): void {
-    if (!this.categoryEl) return;
-    this.categoryEl.textContent = value;
-
-    // Удаляем предыдущие модификаторы категории (card__category_*)
-    Array.from(this.categoryEl.classList).forEach(c => {
-      if (c.startsWith('card__category_')) this.categoryEl!.classList.remove(c);
+    // клик по карточке открывает превью (если клик не по кнопке)
+    this.container.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('button')) return;
+      this.events.emit('product:select', { element: this.container });
     });
 
-    const mod = categoryMap && value in categoryMap
-      ? categoryMap[value as keyof typeof categoryMap]
-      : null;
+    // кнопка покупки/действия
+    this.button?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.events.emit('product:buy', { element: this.container });
+    });
+  }
 
-    if (mod) {
-      this.categoryEl.classList.add(`card__category_${mod}`);
+  render(product: IProduct): HTMLElement {
+    this.container.dataset.productId = product.id;
+    if (this.title) this.title.textContent = product.title;
+    if (this.price) this.price.textContent = product.price != null ? `${product.price} синапсов` : '—';
+    this.setImage(product.image || '', product.title || '');
+    this.updateButtonState(product);
+    return this.container;
+  }
+
+  protected setImage(src: string, alt?: string) {
+    if (this.image) {
+      this.image.src = src || '';
+      this.image.alt = alt || '';
     }
   }
 
-  setButtonLabel(label: string): void {
-    if (this.buttonEl) this.buttonEl.textContent = label;
-  }
-
-  render(): HTMLElement {
-    return this.container;
+  protected updateButtonState(product: IProduct) {
+    if (!this.button) return;
+    if (product.price === null || product.price === undefined) {
+      this.button.textContent = 'Недоступно';
+      this.button.disabled = true;
+    } else {
+      this.button.textContent = 'Купить';
+      this.button.disabled = false;
+    }
   }
 }
