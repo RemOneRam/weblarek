@@ -1,5 +1,5 @@
-import { ProductCard } from './ProductCard';
-import { EventEmitter } from '../components/base/Events';
+import { ProductCard } from "./ProductCard";
+import { EventEmitter } from "../components/base/Events";
 import { IProduct } from "../types";
 
 export class PreviewProductCard extends ProductCard {
@@ -10,29 +10,33 @@ export class PreviewProductCard extends ProductCard {
 
   constructor(container: HTMLElement, events: EventEmitter) {
     super(container, events);
-    this.descriptionEl = this.container.querySelector('.card__text') ?? this.container.querySelector('.card__description');
-    this.categoryEl = this.container.querySelector('.card__category');
-    this.titleEl = this.container.querySelector('.card__title');
-    this.priceEl = this.container.querySelector('.card__price');
+    this.descriptionEl =
+      this.container.querySelector(".card__text") ??
+      this.container.querySelector(".card__description");
+    this.categoryEl = this.container.querySelector(".card__category");
+    this.titleEl = this.container.querySelector(".card__title");
+    this.priceEl = this.container.querySelector(".card__price");
   }
 
   render(product: IProduct): HTMLElement {
     super.render(product);
 
-    if (this.titleEl) this.titleEl.textContent = product.title || '';
-    if (this.categoryEl) this.categoryEl.textContent = product.category || '';
-    if (this.descriptionEl) this.descriptionEl.textContent = product.description || '';
-    if (this.priceEl) this.priceEl.textContent = product.price != null ? `${product.price} синапсов` : 'Недоступно';
+    if (this.titleEl) this.titleEl.textContent = product.title || "";
+    if (this.categoryEl) this.categoryEl.textContent = product.category || "";
+    if (this.descriptionEl)
+      this.descriptionEl.textContent = product.description || "";
+    if (this.priceEl)
+      this.priceEl.textContent =
+        product.price != null ? `${product.price} синапсов` : "Недоступно";
 
-    // кнопка купить
     const btn = this.button;
     if (btn) {
       if (product.price == null) {
         btn.disabled = true;
-        btn.textContent = 'Недоступно';
+        btn.textContent = "Недоступно";
       } else {
         btn.disabled = false;
-        btn.textContent = 'Купить';
+        btn.textContent = "Купить";
       }
     }
 

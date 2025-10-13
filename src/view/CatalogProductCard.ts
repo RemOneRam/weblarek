@@ -1,5 +1,5 @@
-import { ProductCard } from './ProductCard';
-import { EventEmitter } from '../components/base/Events';
+import { ProductCard } from "./ProductCard";
+import { EventEmitter } from "../components/base/Events";
 import { IProduct } from "../types";
 
 export class CatalogProductCard extends ProductCard {
@@ -9,17 +9,19 @@ export class CatalogProductCard extends ProductCard {
 
   constructor(container: HTMLElement, events: EventEmitter) {
     super(container, events);
-    this.categoryEl = this.container.querySelector('.card__category');
-    this.titleEl = this.container.querySelector('.card__title');
-    this.priceEl = this.container.querySelector('.card__price');
+    this.categoryEl = this.container.querySelector(".card__category");
+    this.titleEl = this.container.querySelector(".card__title");
+    this.priceEl = this.container.querySelector(".card__price");
   }
 
   render(product: IProduct): HTMLElement {
     super.render(product);
 
-    if (this.titleEl) this.titleEl.textContent = product.title || '';
-    if (this.categoryEl) this.categoryEl.textContent = product.category || '';
-    if (this.priceEl) this.priceEl.textContent = product.price != null ? `${product.price} синапсов` : 'Недоступно';
+    if (this.titleEl) this.titleEl.textContent = product.title || "";
+    if (this.categoryEl) this.categoryEl.textContent = product.category || "";
+    if (this.priceEl)
+      this.priceEl.textContent =
+        product.price != null ? `${product.price} синапсов` : "Недоступно";
 
     return this.container;
   }

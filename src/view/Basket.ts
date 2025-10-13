@@ -7,14 +7,14 @@ export class Basket extends Component<{}> {
 
   constructor(container: HTMLElement) {
     super(container);
-    this.listElement = this.container.querySelector('.basket__list')!;
-    this.totalElement = this.container.querySelector('.basket__price')!;
-    this.buttonOrder = this.container.querySelector('.basket__button')!;
+    this.listElement = this.container.querySelector(".basket__list")!;
+    this.totalElement = this.container.querySelector(".basket__price")!;
+    this.buttonOrder = this.container.querySelector(".basket__button")!;
   }
 
   setItems(items: HTMLElement[]) {
-    this.listElement.innerHTML = '';
-    items.forEach(item => this.listElement.appendChild(item));
+    this.listElement.innerHTML = "";
+    items.forEach((item) => this.listElement.appendChild(item));
   }
 
   setTotal(total: number) {

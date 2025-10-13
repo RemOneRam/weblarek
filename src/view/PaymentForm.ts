@@ -12,20 +12,22 @@ export class PaymentForm {
   constructor(form: HTMLFormElement, events: EventEmitter) {
     this.form = form;
     this.events = events;
-    this.addressInput = this.form.querySelector<HTMLInputElement>('input[name="address"]');
-    this.buttons = this.form.querySelectorAll<HTMLButtonElement>('.button_alt');
-    this.nextBtn = this.form.querySelector<HTMLButtonElement>('button[type="submit"]');
+    this.addressInput = this.form.querySelector<HTMLInputElement>(
+      'input[name="address"]'
+    );
+    this.buttons = this.form.querySelectorAll<HTMLButtonElement>(".button_alt");
+    this.nextBtn = this.form.querySelector<HTMLButtonElement>(
+      'button[type="submit"]'
+    );
 
-    // слушатели выбора способа оплаты
     this.buttons.forEach((btn) => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener("click", (e) => {
         e.preventDefault();
         this.selectPayment(btn);
       });
     });
 
-    // слушатель ввода адреса
-    this.addressInput?.addEventListener('input', () => {
+    this.addressInput?.addEventListener("input", () => {
       this.updateButtonState();
       this.emitChange();
     });
@@ -34,21 +36,19 @@ export class PaymentForm {
   }
 
   private selectPayment(btn: HTMLButtonElement) {
-    // снять активный класс со всех кнопок
-    this.buttons.forEach(b => b.classList.remove('button_alt-active'));
+    this.buttons.forEach((b) => b.classList.remove("button_alt-active"));
 
-    // активировать выбранную
-    btn.classList.add('button_alt-active');
+    btn.classList.add("button_alt-active");
     this.selectedPayment = btn.textContent?.trim() || null;
     this.emitChange();
     this.updateButtonState();
   }
 
   private emitChange() {
-    const address = this.addressInput?.value.trim() ?? '';
-    this.events.emit('payment:change', {
+    const address = this.addressInput?.value.trim() ?? "";
+    this.events.emit("payment:change", {
       payment: this.selectedPayment,
-      address
+      address,
     });
   }
 

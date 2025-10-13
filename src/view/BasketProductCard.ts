@@ -1,4 +1,4 @@
-import { EventEmitter } from '../components/base/Events';
+import { EventEmitter } from "../components/base/Events";
 import { IProduct } from "../types";
 
 export class BasketProductCard {
@@ -9,19 +9,27 @@ export class BasketProductCard {
   private events: EventEmitter;
   private formatPrice: (price: number | null | undefined) => string;
 
-  constructor(container: HTMLElement, events: EventEmitter, formatPrice: (price: number | null | undefined) => string) {
+  constructor(
+    container: HTMLElement,
+    events: EventEmitter,
+    formatPrice: (price: number | null | undefined) => string
+  ) {
     this.container = container;
     this.events = events;
     this.formatPrice = formatPrice;
 
-    this.titleEl = this.container.querySelector('.card__title') ?? this.container.querySelector('.basket__item-title');
-    this.priceEl = this.container.querySelector('.card__price') ?? this.container.querySelector('.basket__item-price');
-    this.removeBtn = this.container.querySelector('.basket__item-delete');
+    this.titleEl =
+      this.container.querySelector(".card__title") ??
+      this.container.querySelector(".basket__item-title");
+    this.priceEl =
+      this.container.querySelector(".card__price") ??
+      this.container.querySelector(".basket__item-price");
+    this.removeBtn = this.container.querySelector(".basket__item-delete");
 
-    this.removeBtn?.addEventListener('click', (e) => {
+    this.removeBtn?.addEventListener("click", (e) => {
       e.stopPropagation();
       const pid = this.container.dataset.productId;
-      this.events.emit('cart:remove', { productId: pid });
+      this.events.emit("cart:remove", { productId: pid });
     });
   }
 
@@ -30,7 +38,7 @@ export class BasketProductCard {
     if (this.titleEl) this.titleEl.textContent = product.title;
     if (this.priceEl) {
       if (product.title === "Мамка-таймер") {
-        this.priceEl.textContent = 'Бесценно';
+        this.priceEl.textContent = "Бесценно";
       } else {
         this.priceEl.textContent = this.formatPrice(product.price);
       }

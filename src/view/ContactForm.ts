@@ -1,5 +1,5 @@
-import { Form } from './Form';
-import { EventEmitter } from '../components/base/Events';
+import { Form } from "./Form";
+import { EventEmitter } from "../components/base/Events";
 
 interface IContactForm {
   email: string;
@@ -16,20 +16,18 @@ export class ContactForm extends Form<IContactForm> {
     this.emailInput = container.querySelector('input[name="email"]');
     this.phoneInput = container.querySelector('input[name="phone"]');
 
-    // Добавляем обработчик отправки формы
-    container.addEventListener('submit', (e) => {
+    container.addEventListener("submit", (e) => {
       e.preventDefault();
-      events.emit('order:submit', {
+      events.emit("order:submit", {
         data: {
-          email: this.emailInput?.value || '',
-          phone: this.phoneInput?.value || ''
-        }
+          email: this.emailInput?.value || "",
+          phone: this.phoneInput?.value || "",
+        },
       });
     });
 
-    // Минимальная валидация на ввод
-    this.emailInput?.addEventListener('input', () => {});
-    this.phoneInput?.addEventListener('input', () => {});
+    this.emailInput?.addEventListener("input", () => {});
+    this.phoneInput?.addEventListener("input", () => {});
   }
 
   setEmail(value: string) {

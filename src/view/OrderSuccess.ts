@@ -1,5 +1,5 @@
 import { Component } from "../components/base/Component";
-import { Modal } from "../view/Modal"; // добавляем импорт, чтобы закрыть модалку
+import { Modal } from "../view/Modal";
 
 export class OrderSuccess extends Component<{}> {
   description: HTMLElement;
@@ -9,16 +9,18 @@ export class OrderSuccess extends Component<{}> {
 
   constructor(container: HTMLElement) {
     super(container);
-    this.description = this.container.querySelector('.order-success__description')!;
-    this.totalElement = this.container.querySelector('.order-success__description')!;
-    this.buttonClose = this.container.querySelector('.order-success__close')!;
+    this.description = this.container.querySelector(
+      ".order-success__description"
+    )!;
+    this.totalElement = this.container.querySelector(
+      ".order-success__description"
+    )!;
+    this.buttonClose = this.container.querySelector(".order-success__close")!;
 
-    // Ищем открытую модалку (по ID)
-    const modalContainer = document.getElementById('modal-container');
+    const modalContainer = document.getElementById("modal-container");
     this.modalInstance = new Modal(modalContainer!);
 
-    // При клике просто закрываем модалку
-    this.buttonClose.addEventListener('click', () => {
+    this.buttonClose.addEventListener("click", () => {
       this.modalInstance.close();
     });
   }

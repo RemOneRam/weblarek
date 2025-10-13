@@ -8,26 +8,26 @@ export class Modal extends Component<{}> {
   constructor(container: HTMLElement) {
     super(container);
     this.modalElement = this.container;
-    this.contentElement = this.modalElement.querySelector('.modal__content')!;
-    this.closeButton = this.modalElement.querySelector('.modal__close')!;
+    this.contentElement = this.modalElement.querySelector(".modal__content")!;
+    this.closeButton = this.modalElement.querySelector(".modal__close")!;
 
-    this.closeButton.addEventListener('click', () => this.close());
-    this.modalElement.addEventListener('click', (e) => {
+    this.closeButton.addEventListener("click", () => this.close());
+    this.modalElement.addEventListener("click", (e) => {
       if (e.target === this.modalElement) this.close();
     });
   }
 
   open(content: HTMLElement) {
     this.setContent(content);
-    this.modalElement.classList.add('modal_active');
+    this.modalElement.classList.add("modal_active");
   }
 
   close() {
-    this.modalElement.classList.remove('modal_active');
+    this.modalElement.classList.remove("modal_active");
   }
 
   setContent(content: HTMLElement) {
-    this.contentElement.innerHTML = '';
+    this.contentElement.innerHTML = "";
     this.contentElement.appendChild(content);
   }
 
