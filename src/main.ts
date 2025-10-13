@@ -13,12 +13,8 @@ import { EventEmitter } from "./components/base/Events";
 import { Header } from "./view/header";
 import { Gallery } from "./view/gallery";
 import { Modal } from "./view/Modal";
-import { CatalogProductCard } from "./view/CatalogProductCard";
-import { PreviewProductCard } from "./view/PreviewProductCard";
 import { BasketProductCard } from "./view/BasketProductCard";
 import { Basket } from "./view/Basket";
-import { PaymentForm } from "./view/PaymentForm";
-import { ContactForm } from "./view/ContactForm";
 import { OrderSuccess } from "./view/OrderSuccess";
 
 /* -------------------- Инициализация -------------------- */
@@ -59,8 +55,15 @@ const tmplSuccess = document.getElementById('success') as HTMLTemplateElement;
 const cloneTemplate = (t: HTMLTemplateElement): HTMLElement =>
   t.content.firstElementChild!.cloneNode(true) as HTMLElement;
 
-const getImageSrc = (img?: string): string =>
-  img ? `${CDN_URL}/${img}` : "./src/images/Subtract.svg";
+const getImageSrc = (img?: string): string => {
+  if (!img) return './src/images/Subtract.svg';
+  
+  // если файл svg — заменяем на png
+  const fixedName = img.endsWith('.svg') ? img.replace('.svg', '.png') : img;
+
+  return `${CDN_URL}/${fixedName}`;
+};
+
 
 // Форматирование цены: числа <10000 слитно, >=10000 с пробелом
 function formatPrice(price: number | null | undefined): string {
@@ -231,7 +234,8 @@ function buildBasketNode(items: any[]): HTMLElement {
   const listContainer = node.querySelector('.basket__list') as HTMLElement;
   const emptyMessage = document.createElement('div');
   emptyMessage.textContent = 'Корзина пуста';
-  emptyMessage.className = 'basket__empty-message';
+  emptyMessage.className = 'basket__empty-message modal__title';
+  emptyMessage.style.opacity = '30%';
 
   if (items.length === 0) {
     listContainer.innerHTML = '';
@@ -378,6 +382,8 @@ function openContactFormStep(step1Data: { address: string; payment: string }): v
       phone,
       items: cart.getItems()
     };
+
+     events.emit('order:created', order);
 
     const total = cart.getItems().reduce((sum, it) => sum + (it.price ?? 0), 0);
 
