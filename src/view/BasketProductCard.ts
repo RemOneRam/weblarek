@@ -6,17 +6,15 @@ export class BasketProductCard {
   private titleEl: HTMLElement | null;
   private priceEl: HTMLElement | null;
   private removeBtn: HTMLButtonElement | null;
+  private indexEl: HTMLElement | null; // добавили для порядкового номера
   private events: EventEmitter;
-  private formatPrice: (price: number | null | undefined) => string;
 
   constructor(
     container: HTMLElement,
     events: EventEmitter,
-    formatPrice: (price: number | null | undefined) => string
   ) {
     this.container = container;
     this.events = events;
-    this.formatPrice = formatPrice;
 
     this.titleEl =
       this.container.querySelector(".card__title") ??
@@ -24,6 +22,7 @@ export class BasketProductCard {
     this.priceEl =
       this.container.querySelector(".card__price") ??
       this.container.querySelector(".basket__item-price");
+    this.indexEl = this.container.querySelector(".basket__item-index"); // добавлено
     this.removeBtn = this.container.querySelector(".basket__item-delete");
 
     this.removeBtn?.addEventListener("click", (e) => {
@@ -33,16 +32,25 @@ export class BasketProductCard {
     });
   }
 
-  render(product: IProduct) {
+  render(product: IProduct, index?: number) {
     this.container.dataset.productId = product.id;
     if (this.titleEl) this.titleEl.textContent = product.title;
-    if (this.priceEl) {
-      if (product.title === "Мамка-таймер") {
-        this.priceEl.textContent = "Бесценно";
-      } else {
-        this.priceEl.textContent = this.formatPrice(product.price);
-      }
+
+    if (this.indexEl && index !== undefined) {
+      this.indexEl.textContent = `${index}`;
     }
+
+    if (this.priceEl) {
+      this.priceEl.textContent = product.price != null ? this.formatPriceNumber(product.price) : "Бесценно";
+    }
+
     return this.container;
+  }
+
+  protected formatPriceNumber(n: number): string {
+    return (n >= 10000
+        ? n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ")
+        : String(n)
+    ) + " синапсов";
   }
 }

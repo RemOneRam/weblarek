@@ -1,27 +1,24 @@
 import { Component } from "../components/base/Component";
-import { Modal } from "../view/Modal";
 
 export class OrderSuccess extends Component<{}> {
   description: HTMLElement;
   totalElement: HTMLElement;
   buttonClose: HTMLButtonElement;
-  modalInstance: Modal;
+  private readonly onRequestClose?: () => void;
 
-  constructor(container: HTMLElement) {
+  constructor(container: HTMLElement, onRequestClose?: () => void) {
     super(container);
-    this.description = this.container.querySelector(
-      ".order-success__description"
-    )!;
-    this.totalElement = this.container.querySelector(
-      ".order-success__description"
-    )!;
+    this.onRequestClose = onRequestClose;
+
+    this.description = this.container.querySelector(".order-success__description")!;
+    this.totalElement =
+      (this.container.querySelector(".order-success__total") as HTMLElement | null) ||
+      this.description;
+
     this.buttonClose = this.container.querySelector(".order-success__close")!;
 
-    const modalContainer = document.getElementById("modal-container");
-    this.modalInstance = new Modal(modalContainer!);
-
     this.buttonClose.addEventListener("click", () => {
-      this.modalInstance.close();
+      this.onRequestClose?.();
     });
   }
 

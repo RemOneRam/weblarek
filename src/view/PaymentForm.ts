@@ -12,13 +12,9 @@ export class PaymentForm {
   constructor(form: HTMLFormElement, events: EventEmitter) {
     this.form = form;
     this.events = events;
-    this.addressInput = this.form.querySelector<HTMLInputElement>(
-      'input[name="address"]'
-    );
+    this.addressInput = this.form.querySelector<HTMLInputElement>('input[name="address"]');
     this.buttons = this.form.querySelectorAll<HTMLButtonElement>(".button_alt");
-    this.nextBtn = this.form.querySelector<HTMLButtonElement>(
-      'button[type="submit"]'
-    );
+    this.nextBtn = this.form.querySelector<HTMLButtonElement>('button[type="submit"]');
 
     this.buttons.forEach((btn) => {
       btn.addEventListener("click", (e) => {
@@ -28,11 +24,19 @@ export class PaymentForm {
     });
 
     this.addressInput?.addEventListener("input", () => {
-      this.updateButtonState();
       this.emitChange();
     });
 
-    this.updateButtonState();
+    this.form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const address = this.addressInput?.value.trim() ?? "";
+      this.events.emit("order:step1:submit", {
+        data: {
+          payment: this.selectedPayment,
+          address,
+        },
+      });
+    });
   }
 
   private selectPayment(btn: HTMLButtonElement) {
@@ -41,7 +45,6 @@ export class PaymentForm {
     btn.classList.add("button_alt-active");
     this.selectedPayment = btn.textContent?.trim() || null;
     this.emitChange();
-    this.updateButtonState();
   }
 
   private emitChange() {
@@ -52,10 +55,14 @@ export class PaymentForm {
     });
   }
 
-  private updateButtonState() {
-    const isReady = !!this.selectedPayment && !!this.addressInput?.value.trim();
+  setSubmitDisabled(disabled: boolean) {
     if (this.nextBtn) {
-      this.nextBtn.disabled = !isReady;
+      this.nextBtn.disabled = disabled;
     }
+  }
+
+  setErrors(messages: string[]) {
+    const errors = this.form.querySelector('.form__errors') as HTMLElement | null;
+    if (errors) errors.textContent = messages.join(', ');
   }
 }
