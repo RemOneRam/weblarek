@@ -1,5 +1,20 @@
 import { EventEmitter } from "../components/base/Events";
 import { IProduct } from "../types";
+import { CDN_URL } from '../utils/constants.ts';
+
+const CATEGORY_COLORS: Record<string, string> = {
+  'софт-скил': '#83FA9D',
+  'другое': '#FAD883',
+  'кнопка': '#83DDFA',
+  'дополнительное': '#B783FA',
+  'хард-скил': '#FAA083',
+};
+
+function resolveImageUrl(img?: string): string {
+  if (!img) return './src/images/Subtract.svg';
+  const fixed = img.endsWith('.svg') ? img.replace('.svg', '.png') : img;
+  return `${CDN_URL}/${fixed}`;
+}
 
 export class ProductCard {
   protected container: HTMLElement;
@@ -8,6 +23,8 @@ export class ProductCard {
   protected image: HTMLImageElement | null;
   protected button: HTMLButtonElement | null;
   protected events: EventEmitter;
+  private readonly CATEGORY_COLORS: Record<string, string>;
+  protected currentProduct?: IProduct;
 
   constructor(container: HTMLElement, events: EventEmitter) {
     this.container = container;
@@ -16,10 +33,12 @@ export class ProductCard {
     this.title = this.container.querySelector(".card__title");
     this.price = this.container.querySelector(".card__price");
     this.image = this.container.querySelector(".card__image");
-    this.button = this.container.querySelector("button");
+    this.button = this.container.querySelector(".card__button");
+
+    this.CATEGORY_COLORS = CATEGORY_COLORS;
 
     this.container.addEventListener("click", (e) => {
-      if ((e.target as HTMLElement).closest("button")) return;
+      if ((e.target as HTMLElement).closest(".card__button")) return;
       this.events.emit("product:select", { element: this.container });
     });
 
@@ -30,11 +49,13 @@ export class ProductCard {
   }
 
   render(product: IProduct): HTMLElement {
-    this.container.dataset.productId = product.id;
+    this.container.dataset.productId = String(product.id);
+    this.currentProduct = product;
+
     if (this.title) this.title.textContent = product.title;
-    if (this.price)
-      this.price.textContent =
-        product.price != null ? `${product.price} синапсов` : "—";
+    if (this.price) {
+      this.price.textContent = product.price != null ? this.formatPriceNumber(product.price) : "—";
+    }
     this.setImage(product.image || "", product.title || "");
     this.updateButtonState(product);
     return this.container;
@@ -42,7 +63,7 @@ export class ProductCard {
 
   protected setImage(src: string, alt?: string) {
     if (this.image) {
-      this.image.src = src || "";
+      this.image.src = resolveImageUrl(src);
       this.image.alt = alt || "";
     }
   }
@@ -56,5 +77,22 @@ export class ProductCard {
       this.button.textContent = "Купить";
       this.button.disabled = false;
     }
+  }
+
+  getCategoryColors() {
+    return this.CATEGORY_COLORS;
+  }
+
+  protected formatPriceNumber(n: number): string {
+    return (n >= 10000
+      ? n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ")
+      : String(n)
+    ) + " синапсов";
+  }
+
+  public setInCart(inCart: boolean) {
+    if (!this.button) return;
+    if (this.currentProduct?.price == null) return;
+    this.button.textContent = inCart ? "Удалить из корзины" : "Купить";
   }
 }
