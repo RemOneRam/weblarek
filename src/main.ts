@@ -19,15 +19,26 @@ import { CatalogProductCard } from "./view/CatalogProductCard";
 import { PreviewProductCard } from "./view/PreviewProductCard";
 import { PaymentForm } from "./view/PaymentForm";
 import { ContactForm } from "./view/ContactForm";
+<<<<<<< HEAD
 import { IProduct, TPayment } from './types';
+=======
+import { IProduct } from './types';
+>>>>>>> 403bf1e5dd40ef43d6ef3877c677e69516cf2d22
 
 const productsById = new Map<string, any>();
 
 let paymentChangeHandler:
+<<<<<<< HEAD
   | ((payload: { payment: TPayment | null; address: string }) => void)
   | null = null;
 let orderStep1SubmitHandler:
   | ((payload: { data: { payment: TPayment | null; address: string } }) => void)
+=======
+  | ((payload: { payment: string | null; address: string }) => void)
+  | null = null;
+let orderStep1SubmitHandler:
+  | ((payload: { data: { payment: string | null; address: string } }) => void)
+>>>>>>> 403bf1e5dd40ef43d6ef3877c677e69516cf2d22
   | null = null;
 
 let contactChangeHandler:
@@ -92,6 +103,14 @@ function toggleCartItem(product: any) {
 function createCatalogCard(product: any): HTMLElement {
   const view = new CatalogProductCard(cloneTemplate(tmplCardCatalog), events);
   return view.render(product);
+<<<<<<< HEAD
+=======
+}
+
+function createPreviewCard(product: any): HTMLElement {
+  const view = new PreviewProductCard(cloneTemplate(tmplCardPreview), events);
+  return view.render(product);
+>>>>>>> 403bf1e5dd40ef43d6ef3877c677e69516cf2d22
 }
 
 events.on<{ productId: string }>("cart:remove", ({ productId }) => {
@@ -125,6 +144,7 @@ events.on<{ element: HTMLElement }>("product:buy", ({ element }) => {
     modal.close();
   }
 });
+<<<<<<< HEAD
 events.on('basket:order', () => {
   if (cart.getItems().length > 0) {
     openOrderForm();
@@ -134,6 +154,12 @@ events.on('basket:order', () => {
 function buildBasketNode(items: any[]): HTMLElement {
   const node = cloneTemplate(tmplBasket);
   const basketView = new Basket(node, events);
+=======
+
+function buildBasketNode(items: any[]): HTMLElement {
+  const node = cloneTemplate(tmplBasket);
+  const basketView = new Basket(node);
+>>>>>>> 403bf1e5dd40ef43d6ef3877c677e69516cf2d22
 
   const itemNodes = items.map((p, i) =>
     new BasketProductCard(
@@ -142,8 +168,24 @@ function buildBasketNode(items: any[]): HTMLElement {
     ).render(p, i + 1)
   );
   basketView.setItems(itemNodes);
+<<<<<<< HEAD
   basketView.setTotal(cart.getTotalPrice());
   basketView.setButtonState(items.length > 0);
+=======
+
+  const total = items.reduce((sum, it) => sum + (it.price ?? 0), 0);
+  basketView.setTotal(total);
+  basketView.setButtonState(items.length > 0);
+
+  const orderBtn = node.querySelector(".basket__button") as HTMLButtonElement;
+  if (orderBtn) {
+    orderBtn.addEventListener("click", () => {
+      if (items.length > 0) {
+        openOrderForm();
+      }
+    });
+  }
+>>>>>>> 403bf1e5dd40ef43d6ef3877c677e69516cf2d22
 
   return node;
 }
@@ -160,6 +202,7 @@ function openOrderForm(): void {
   const paymentForm = new PaymentForm(orderNode, events);
   modal.open(orderNode);
 
+<<<<<<< HEAD
   const validateStep1 = (payment: TPayment | null, address: string) => {
     buyer.setData({ payment: payment || undefined, address });
     const errs = buyer.validate();
@@ -171,6 +214,14 @@ function openOrderForm(): void {
     paymentForm.setErrors(messages);
     paymentForm.setSubmitDisabled(messages.length > 0);
     return messages.length === 0;
+=======
+  const validate = (data: { payment: string | null; address: string }) => {
+    const errors: string[] = [];
+    if (!data.payment) errors.push('Выберите способ оплаты');
+    if (!data.address?.trim()) errors.push('Необходимо указать адрес');
+    paymentForm.setErrors(errors);
+    paymentForm.setSubmitDisabled(errors.length > 0);
+>>>>>>> 403bf1e5dd40ef43d6ef3877c677e69516cf2d22
   };
 
   if (paymentChangeHandler) {
@@ -181,6 +232,7 @@ function openOrderForm(): void {
     events.off('order:step1:submit', orderStep1SubmitHandler);
     orderStep1SubmitHandler = null;
   }
+<<<<<<< HEAD
 
   paymentChangeHandler = ({ payment, address }) => validateStep1(payment, address);
   events.on('payment:change', paymentChangeHandler);
@@ -188,6 +240,18 @@ function openOrderForm(): void {
   orderStep1SubmitHandler = ({ data }) => {
     if (!validateStep1(data.payment, data.address)) return;
 
+=======
+
+  paymentChangeHandler = ({ payment, address }) => {
+    validate({ payment, address });
+  };
+  events.on('payment:change', paymentChangeHandler);
+
+  orderStep1SubmitHandler = ({ data }) => {
+    validate(data);
+    if (!data.payment || !data.address?.trim()) return;
+
+>>>>>>> 403bf1e5dd40ef43d6ef3877c677e69516cf2d22
     if (paymentChangeHandler) {
       events.off('payment:change', paymentChangeHandler);
       paymentChangeHandler = null;
@@ -196,7 +260,10 @@ function openOrderForm(): void {
       events.off('order:step1:submit', orderStep1SubmitHandler);
       orderStep1SubmitHandler = null;
     }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 403bf1e5dd40ef43d6ef3877c677e69516cf2d22
     openContactFormStep({ address: data.address, payment: data.payment });
   };
   events.on('order:step1:submit', orderStep1SubmitHandler);
@@ -204,11 +271,16 @@ function openOrderForm(): void {
   paymentForm.setSubmitDisabled(true);
 }
 
+<<<<<<< HEAD
 function openContactFormStep(step1Data: { address: string; payment: TPayment | null }): void {
+=======
+function openContactFormStep(step1Data: { address: string; payment: string }): void {
+>>>>>>> 403bf1e5dd40ef43d6ef3877c677e69516cf2d22
   const contactNode = cloneTemplate(tmplContacts) as HTMLFormElement;
   const contactForm = new ContactForm(contactNode, events);
   modal.open(contactNode);
 
+<<<<<<< HEAD
   const validateStep2 = (email: string, phone: string) => {
     buyer.setData({ email, phone });
     const errs = buyer.validate();
@@ -220,6 +292,14 @@ function openContactFormStep(step1Data: { address: string; payment: TPayment | n
     contactForm.showErrors(messages);
     contactForm.setSubmitDisabled(messages.length > 0);
     return messages.length === 0;
+=======
+  const validate = (data: { email: string; phone: string }) => {
+    const errors: string[] = [];
+    if (!data.email.trim()) errors.push('Укажите email');
+    if (!data.phone.trim()) errors.push('Укажите телефон');
+    contactForm.showErrors(errors);
+    contactForm.setSubmitDisabled(errors.length > 0);
+>>>>>>> 403bf1e5dd40ef43d6ef3877c677e69516cf2d22
   };
 
   if (contactChangeHandler) {
@@ -231,11 +311,22 @@ function openContactFormStep(step1Data: { address: string; payment: TPayment | n
     orderSubmitHandler = null;
   }
 
+<<<<<<< HEAD
   contactChangeHandler = ({ data }) => validateStep2(data.email, data.phone);
   events.on('contact:change', contactChangeHandler);
 
   orderSubmitHandler = ({ data }) => {
     if (!validateStep2(data.email, data.phone)) return;
+=======
+  contactChangeHandler = ({ data }) => {
+    validate(data);
+  };
+  events.on('contact:change', contactChangeHandler);
+
+  orderSubmitHandler = ({ data }) => {
+    validate(data);
+    if (!data.email.trim() || !data.phone.trim()) return;
+>>>>>>> 403bf1e5dd40ef43d6ef3877c677e69516cf2d22
 
     const order = {
       ...step1Data,
@@ -267,6 +358,12 @@ function openContactFormStep(step1Data: { address: string; payment: TPayment | n
     events.emit('cart:updated', { items: cart.getItems() });
   };
   events.on('order:submit', orderSubmitHandler);
+<<<<<<< HEAD
+=======
+
+  contactForm.setSubmitDisabled(true);
+}
+>>>>>>> 403bf1e5dd40ef43d6ef3877c677e69516cf2d22
 
   contactForm.setSubmitDisabled(true);
 }

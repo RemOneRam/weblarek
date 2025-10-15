@@ -36,7 +36,10 @@ export class BasketProductCard {
     this.container.dataset.productId = product.id;
     if (this.titleEl) this.titleEl.textContent = product.title;
 
+<<<<<<< HEAD
     // отображаем индекс, если передан
+=======
+>>>>>>> 403bf1e5dd40ef43d6ef3877c677e69516cf2d22
     if (this.indexEl && index !== undefined) {
       this.indexEl.textContent = `${index}`;
     }
