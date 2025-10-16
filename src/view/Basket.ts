@@ -1,16 +1,13 @@
 import { Component } from "../components/base/Component";
 import { EventEmitter } from '../components/base/Events';
+import { formatPriceView } from './ProductCard';
 
 export class Basket extends Component<{}> {
   listElement: HTMLElement;
   totalElement: HTMLElement;
   buttonOrder: HTMLButtonElement;
-<<<<<<< HEAD
   private readonly emptyMessage: HTMLDivElement;
   private events: EventEmitter;
-=======
-  private emptyMessage: HTMLDivElement;
->>>>>>> 403bf1e5dd40ef43d6ef3877c677e69516cf2d22
 
   constructor(container: HTMLElement, events: EventEmitter) {
     super(container);
@@ -22,13 +19,10 @@ export class Basket extends Component<{}> {
     this.emptyMessage.className = 'basket__empty-message modal__title';
     this.emptyMessage.textContent = 'Корзина пуста';
     this.emptyMessage.style.opacity = "30%";
-<<<<<<< HEAD
 
     this.buttonOrder.addEventListener('click', () => {
       this.events.emit('basket:order', {});
     });
-=======
->>>>>>> 403bf1e5dd40ef43d6ef3877c677e69516cf2d22
   }
 
   setItems(items: HTMLElement[]) {
@@ -44,7 +38,7 @@ export class Basket extends Component<{}> {
   }
 
   setTotal(total: number) {
-    this.totalElement.textContent = `${total} синапсов`;
+    this.totalElement.textContent = formatPriceView(total);
   }
 
   setButtonState(active: boolean) {

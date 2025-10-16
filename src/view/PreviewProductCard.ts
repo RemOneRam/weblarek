@@ -1,4 +1,4 @@
-import { ProductCard } from "./ProductCard";
+import { formatPriceView, ProductCard } from './ProductCard';
 import { EventEmitter } from "../components/base/Events";
 import { IProduct } from "../types";
 
@@ -30,7 +30,7 @@ export class PreviewProductCard extends ProductCard {
     if (this.descriptionEl)
       this.descriptionEl.textContent = product.description || '';
     if (this.priceEl) {
-      this.priceEl.textContent = product.price != null ? this.formatPriceNumber(product.price) : "Бесценно";
+      this.priceEl.textContent = product.price != null ? formatPriceView(product.price) : "Бесценно";
     }
 
     const btn = this.button;

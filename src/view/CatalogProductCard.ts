@@ -1,4 +1,4 @@
-import { ProductCard } from "./ProductCard";
+import { formatPriceView, ProductCard } from './ProductCard';
 import { EventEmitter } from "../components/base/Events";
 import { IProduct } from "../types";
 
@@ -24,7 +24,7 @@ export class CatalogProductCard extends ProductCard {
       if (color) (this.categoryEl as HTMLElement).style.backgroundColor = color;
     }
     if (this.priceEl) {
-      this.priceEl.textContent = product.price != null ? this.formatPriceNumber(product.price) : "Бесценно";
+      this.priceEl.textContent = product.price != null ? formatPriceView(product.price) : "Бесценно";
     }
     return this.container;
   }

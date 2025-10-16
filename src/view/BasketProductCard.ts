@@ -1,5 +1,6 @@
 import { EventEmitter } from "../components/base/Events";
 import { IProduct } from "../types";
+import { formatPriceView } from './ProductCard';
 
 export class BasketProductCard {
   private container: HTMLElement;
@@ -36,25 +37,15 @@ export class BasketProductCard {
     this.container.dataset.productId = product.id;
     if (this.titleEl) this.titleEl.textContent = product.title;
 
-<<<<<<< HEAD
     // отображаем индекс, если передан
-=======
->>>>>>> 403bf1e5dd40ef43d6ef3877c677e69516cf2d22
     if (this.indexEl && index !== undefined) {
       this.indexEl.textContent = `${index}`;
     }
 
     if (this.priceEl) {
-      this.priceEl.textContent = product.price != null ? this.formatPriceNumber(product.price) : "Бесценно";
+      this.priceEl.textContent = product.price != null ? formatPriceView(product.price) : "Бесценно";
     }
 
     return this.container;
-  }
-
-  protected formatPriceNumber(n: number): string {
-    return (n >= 10000
-        ? n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ")
-        : String(n)
-    ) + " синапсов";
   }
 }

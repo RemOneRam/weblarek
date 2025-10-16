@@ -2,6 +2,14 @@ import { EventEmitter } from "../components/base/Events";
 import { IProduct } from "../types";
 import { CDN_URL } from '../utils/constants.ts';
 
+
+export function formatPriceView(value: number): string {
+  const formatted = value >= 10000
+    ? value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ")
+    : String(value);
+  return `${formatted} синапсов`;
+}
+
 const CATEGORY_COLORS: Record<string, string> = {
   'софт-скил': '#83FA9D',
   'другое': '#FAD883',
@@ -54,7 +62,7 @@ export class ProductCard {
 
     if (this.title) this.title.textContent = product.title;
     if (this.price) {
-      this.price.textContent = product.price != null ? this.formatPriceNumber(product.price) : "—";
+      this.price.textContent = product.price != null ? formatPriceView(product.price) : "—";
     }
     this.setImage(product.image || "", product.title || "");
     this.updateButtonState(product);
@@ -81,13 +89,6 @@ export class ProductCard {
 
   getCategoryColors() {
     return this.CATEGORY_COLORS;
-  }
-
-  protected formatPriceNumber(n: number): string {
-    return (n >= 10000
-      ? n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ")
-      : String(n)
-    ) + " синапсов";
   }
 
   public setInCart(inCart: boolean) {
