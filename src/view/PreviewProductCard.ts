@@ -1,4 +1,4 @@
-import { ProductCard } from "./ProductCard";
+import { formatPriceView, ProductCard } from './ProductCard';
 import { EventEmitter } from "../components/base/Events";
 import { IProduct } from "../types";
 
@@ -21,22 +21,26 @@ export class PreviewProductCard extends ProductCard {
   render(product: IProduct): HTMLElement {
     super.render(product);
 
-    if (this.titleEl) this.titleEl.textContent = product.title || "";
-    if (this.categoryEl) this.categoryEl.textContent = product.category || "";
+    if (this.titleEl) this.titleEl.textContent = product.title || '';
+    if (this.categoryEl) {
+      this.categoryEl.textContent = product.category || '';
+      const color = super.getCategoryColors()[product.category || ''];
+      if (color) (this.categoryEl as HTMLElement).style.backgroundColor = color;
+    }
     if (this.descriptionEl)
-      this.descriptionEl.textContent = product.description || "";
-    if (this.priceEl)
-      this.priceEl.textContent =
-        product.price != null ? `${product.price} синапсов` : "Недоступно";
+      this.descriptionEl.textContent = product.description || '';
+    if (this.priceEl) {
+      this.priceEl.textContent = product.price != null ? formatPriceView(product.price) : "Бесценно";
+    }
 
     const btn = this.button;
     if (btn) {
       if (product.price == null) {
         btn.disabled = true;
-        btn.textContent = "Недоступно";
+        btn.textContent = 'Недоступно';
       } else {
         btn.disabled = false;
-        btn.textContent = "Купить";
+        btn.textContent = 'Купить';
       }
     }
 
